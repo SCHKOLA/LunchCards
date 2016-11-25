@@ -79,6 +79,7 @@ if (isset($_GET['xba'])) {
     <!DOCTYPE html>
     <html>
         <head>
+            <meta charset="UTF-8">
             <title>LunchCard Creator</title>
         </head>
         <body>
@@ -110,7 +111,7 @@ if (isset($_GET['xba'])) {
                 var result = new Array();
                 $("#addRow").submit(function (e) {
                     e.preventDefault();
-                    if (result.length > 12) {
+                    if (result.length >= 12) {
                         alert("Nicht mehr als 12 Elemente möglich!");
                         return;
                     }
