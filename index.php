@@ -80,7 +80,6 @@ if (isset($_GET['xba'])) {
         <head>
             <meta charset="UTF-8">
             <title>LunchCard Creator</title>
-            <meta charset="utf-8">
         </head>
         <body>
             <table rules="cols" style="width: 300px">
