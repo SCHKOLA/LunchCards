@@ -50,7 +50,6 @@ if (isset($_GET['xba'])) {
     $pdf->SetAutoPageBreak(true, 10);
     $pdf->AddPage();
     $pdf->SetFont('times');
-    $pdf->SetCreator('FPDF www.fpdf.de');
     $pdf->SetAuthor('LunchCard Creator');
     $pdf->SetTitle('LunchCard Creator');
 
@@ -73,7 +72,7 @@ if (isset($_GET['xba'])) {
         $j = $j + 2;
     }
 
-    $pdf->Output('I', 'test.pdf');
+    $pdf->Output('I', 'LLC.pdf');
 } else {
     ?>
     <!DOCTYPE html>
@@ -81,6 +80,7 @@ if (isset($_GET['xba'])) {
         <head>
             <meta charset="UTF-8">
             <title>LunchCard Creator</title>
+            <meta charset="utf-8">
         </head>
         <body>
             <table rules="cols" style="width: 300px">
@@ -97,30 +97,33 @@ if (isset($_GET['xba'])) {
             <form id="addRow">
                 <input id="xba" type="text" placeholder="XBA-Nummer" required=""/>
                 <input id="name" type="text" placeholder="Name" required=""/>
-                <select id="funktion">
+                <select id="function">
                     <option value="Schüler">Schüler</option>
                     <option value="Mitarbeiter">Mitarbeiter</option>
+                    <option value="Gast">Gast</option>
                 </select>
                 <input type="submit" value="Hinzufügen"/>
             </form>
             <form id="send">
                 <input type="submit" value="Generieren"/>
             </form>
-            <script type="text/javascript" src="jquery-3.1.1.min.js"></script>
             <script>
                 var result = new Array();
-                $("#addRow").submit(function (e) {
+                var F_xba = document.getElementById("xba");
+                var F_name = document.getElementById("name");
+                var F_function = document.getElementById("function");
+                document.getElementById("addRow").addEventListener("submit", function (e) {
                     e.preventDefault();
                     if (result.length >= 12) {
                         alert("Nicht mehr als 12 Elemente möglich!");
                         return;
                     }
-                    $("table tbody").append("<tr><td>" + $("#xba").val() + "</td><td>" + $("#name").val() + "</td><td>" + $("#funktion").val() + "</td></tr>");
-                    result.push(new Array($("#xba").val(), $("#name").val(), $("#funktion").val()));
-                    $("#xba").val("");
-                    $("#name").val("");
+                    document.querySelector("table tbody").innerHTML += "<tr><td>" + F_xba.value + "</td><td>" + F_name.value + "</td><td>" + F_function.value + "</td></tr>";
+                    result.push(new Array(F_xba.value, F_name.value, F_function.value));
+                    F_xba.value = "";
+                    F_name.value = "";
                 });
-                $("#send").submit(function (e) {
+                document.getElementById("send").addEventListener("submit", function (e) {
                     e.preventDefault();
                     if (result.length === 0) {
                         alert("Keine Elemente übergeben!");
