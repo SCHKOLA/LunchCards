@@ -2,7 +2,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Niklas Merkelt
+ * Copyright 2016 - 2019 Niklas Merkelt
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,56 +23,49 @@
  * THE SOFTWARE.
  */
 
-if (isset($_GET['xba'])) {
-    require_once 'phpqrcode.php';
-    define('FPDF_FONTPATH', 'fpdf/font/');
-    define('FPDF_INSTALLDIR', 'fpdf/');
-    include(FPDF_INSTALLDIR . 'fpdf.php');
+function createPDF($array) {
+    require_once __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+    
+    $pdf = new TCPDF();
 
-    $json = json_decode($_GET['xba']);
+    $pdf->setHeaderData('', 0, '', '', array(255, 255, 255), array(255, 255, 255));
+    $pdf->setFooterData(array(255, 255, 255), array(255, 255, 255));
 
-    if (count($json) > 12) {
-        echo "Fehler: Es wurden mehr als 12 Elemente hinzugefügt!";
-        exit;
-    }
-
-    if (!file_exists('qrcodes')) {
-        mkdir('qrcodes', 0777, true);
-    }
-
-    foreach ($json as $XBA) {
-        if (!file_exists("qrcodes/" . $XBA[0] . ".png")) {
-            QRcode::png($XBA[0], "qrcodes/" . $XBA[0] . ".png", QR_ECLEVEL_M, 4, 1);
-        }
-    }
-
-    $pdf = new FPDF();
-    $pdf->SetAutoPageBreak(true, 10);
+    $pdf->SetAutoPageBreak(true, 15);
     $pdf->AddPage();
     $pdf->SetFont('times');
     $pdf->SetAuthor('LunchCard Creator');
     $pdf->SetTitle('LunchCard Creator');
 
-    $j = 0;
-    for ($i = 0; $i < ceil(count($json) / 2); $i++) {
-        $pdf->Cell(80, 10, utf8_decode($json[$j][1]), 1, 0, 'C');
-        $pdf->Cell(30, 10, '', 0, 0);
-        $pdf->Cell(80, 10, utf8_decode($json[$j + 1][1]), 1, 1, 'C');
-        $pdf->Cell(80, 10, utf8_decode($json[$j][2]), 'TRL', 0, 'C');
-        $pdf->Cell(30, 10, '', 0, 0);
-        $pdf->Cell(80, 10, utf8_decode($json[$j + 1][2]), 'TRL', 1, 'C');
-        $pdf->Cell(80, 20, '', 'RL', 0);
-        $pdf->Cell(30, 10, '', 0, 0);
-        $pdf->Cell(80, 20, '', 'RL', 1);
-        $pdf->Cell(80, 5, 'XBA: ' . $json[$j][0], 'BLR', 0, 'R');
-        $pdf->Cell(30, 10, '', 0, 0);
-        $pdf->Cell(80, 5, 'XBA: ' . $json[$j + 1][0], 'BLR', 1, 'R');
-        $pdf->Image('qrcodes/' . $json[$j][0] . ".png", 38, 28 + 45 * $i);
-        $pdf->Image('qrcodes/' . $json[$j + 1][0] . ".png", 148, 28 + 45 * $i);
-        $j = $j + 2;
+    for ($i = 0; $i < count($array); $i++) {
+        $row = floor(($i - (12 * ($pdf->PageNo() - 1))) / 2);
+        $pdf->SetY(10 + (45 * $row));
+        if ($i % 2 == 0) {
+            $pdf->SetX(10);
+        } else {
+            $pdf->SetX(120);
+        }
+        $pdf->Cell(80, 10, $array[$i][1], 'TLR', 2, 'C');
+        $pdf->Cell(80, 9, $array[$i][2], 'TLR', 2, 'C');
+        $pdf->Cell(80, 20, '', 'RL', 2);
+        $pdf->Cell(80, 5, 'XBA: ' . $array[$i][0], 'BLR', 2, 'R');
+        $rowRecalc = floor(($i - (12 * ($pdf->PageNo() - 1))) / 2);
+        if ($i % 2 == 0) {
+            $pdf->write2DBarcode($array[$i][0], 'QRCODE,Q', 38, 28 + 45 * $rowRecalc, 24, 24);
+        } else {
+            $pdf->write2DBarcode($array[$i][0], 'QRCODE,Q', 148, 28 + 45 * $rowRecalc, 24, 24);
+        }
     }
 
-    $pdf->Output('I', 'LLC.pdf');
+    $pdf->Output('LLC.pdf');
+}
+
+if (filter_has_var(INPUT_GET, 'xba')) {
+
+    $json = json_decode(filter_input(INPUT_GET, 'xba'));
+
+    createPDF($json);
+
 } else {
     ?>
     <!DOCTYPE html>
@@ -113,10 +106,6 @@ if (isset($_GET['xba'])) {
                 var F_function = document.getElementById("function");
                 document.getElementById("addRow").addEventListener("submit", function (e) {
                     e.preventDefault();
-                    if (result.length >= 12) {
-                        alert("Nicht mehr als 12 Elemente möglich!");
-                        return;
-                    }
                     document.querySelector("table tbody").innerHTML += "<tr><td>" + F_xba.value + "</td><td>" + F_name.value + "</td><td>" + F_function.value + "</td></tr>";
                     result.push(new Array(F_xba.value, F_name.value, F_function.value));
                     F_xba.value = "";
@@ -128,10 +117,7 @@ if (isset($_GET['xba'])) {
                         alert("Keine Elemente übergeben!");
                         return;
                     }
-                    if (result.length % 2 !== 0) {
-                        result.push(new Array("0000", "MUSTER", "MUSTER"));
-                    }
-                    window.location = "index.php?xba="+JSON.stringify(result);
+                    window.location = "index.php?xba=" + JSON.stringify(result);
                 });
             </script>
         </body>

@@ -1,0 +1,13 @@
+{
+    "name": "vendor/lunch-cards",
+    "description": "Description of project LunchCards.",
+    "authors": [
+        {
+            "name": "Niklas Merkelt",
+            "email": "hibo98.niklas@gmail.com"
+        }
+    ],
+    "require": {
+        "tecnickcom/tcpdf": "6.3.2"
+    }
+}
