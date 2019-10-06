@@ -82,7 +82,6 @@ if (filter_has_var(INPUT_GET, 'xba')) {
                     </tr>
                 </thead>
                 <tbody>
-
                 </tbody>
             </table>
             <br>
@@ -96,6 +95,9 @@ if (filter_has_var(INPUT_GET, 'xba')) {
                 </select>
                 <input type="submit" value="Hinzufügen"/>
             </form>
+            <form id="loadFile">
+                <input id="csvFile" type="file" accept="text/csv"/>
+            </form>
             <form id="send">
                 <input type="submit" value="Generieren"/>
             </form>
@@ -104,12 +106,37 @@ if (filter_has_var(INPUT_GET, 'xba')) {
                 var F_xba = document.getElementById("xba");
                 var F_name = document.getElementById("name");
                 var F_function = document.getElementById("function");
+                function readAddLine(line) {
+                    var split = line.split(",");
+                    if (split.length === 3) {
+                        addLine(split[0], split[1], split[2]);
+                    } else if (split.length === 4) {
+                        addLine(split[0], split[2] + " " + split[1], split[3]);
+                    }
+                }
+                function addLine(xba,name,func) {
+                    document.querySelector("table tbody").innerHTML += "<tr><td>" + xba + "</td><td>" + name + "</td><td>" + func + "</td></tr>";
+                    result.push(new Array(xba, name, func));
+                }
                 document.getElementById("addRow").addEventListener("submit", function (e) {
                     e.preventDefault();
-                    document.querySelector("table tbody").innerHTML += "<tr><td>" + F_xba.value + "</td><td>" + F_name.value + "</td><td>" + F_function.value + "</td></tr>";
-                    result.push(new Array(F_xba.value, F_name.value, F_function.value));
+                    addLine(F_xba.value,F_name.value,F_function.value);
                     F_xba.value = "";
                     F_name.value = "";
+                });
+                document.getElementById("csvFile").addEventListener("change", function (e) {
+                    if (e.target.files.length !== 0) {
+                        var reader = new FileReader();
+                        reader.onloadend = function(e) {
+                            if (e.target.readyState === FileReader.DONE) {
+                                var lines = e.target.result.split(/\r?\n/g);
+                                for (var i = 0; i < lines.length; i++) {
+                                    readAddLine(lines[i]);
+                                }
+                            }
+                        };
+                        reader.readAsText(e.target.files[0]);
+                    }
                 });
                 document.getElementById("send").addEventListener("submit", function (e) {
                     e.preventDefault();
